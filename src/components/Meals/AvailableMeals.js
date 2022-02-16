@@ -1,36 +1,55 @@
 import Card from "../ui/Card";
 import classes from "./AvailableMeals.module.css";
 import MealItem from "./MealItem/MealItem";
-
-const DUMMY_MEALS = [
-  {
-    id: "m1",
-    name: "Sushi",
-    description: "Finest fish and veggies",
-    price: 22.99,
-  },
-  {
-    id: "m2",
-    name: "Schnitzel",
-    description: "A german specialty!",
-    price: 16.5,
-  },
-  {
-    id: "m3",
-    name: "Barbecue Burger",
-    description: "American, raw, meaty",
-    price: 12.99,
-  },
-  {
-    id: "m4",
-    name: "Green Bowl",
-    description: "Healthy...and green...",
-    price: 18.99,
-  },
-];
+import { useEffect, useState } from "react";
 
 const AvailableMeals = () => {
-  const mealsList = DUMMY_MEALS.map((meal) => (
+  const [mealsState, setMeals] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [httpError, setHttpError] = useState();
+  useEffect(() => {
+    const fetchMeals = async () => {
+      const response = await fetch(
+        "https://foodorderapp-caeef-default-rtdb.firebaseio.com/meals.json"
+      );
+      if (!response.ok) {
+        throw new Error("Something went wrong!");
+      }
+      const responseData = await response.json();
+      const loadedMeals = [];
+      for (const Key in responseData) {
+        loadedMeals.push({
+          id: Key,
+          name: responseData[Key].name,
+          description: responseData[Key].description,
+          price: responseData[Key].price,
+        });
+      }
+      setMeals(loadedMeals);
+      setIsLoading(false);
+    };
+    fetchMeals().catch((error) => {
+      setIsLoading(false);
+      setHttpError(error.message);
+    });
+  }, []);
+
+  if (isLoading) {
+    return (
+      <section className={classes.MealsLoading}>
+        <p>Loading ...</p>
+      </section>
+    );
+  }
+
+  if (httpError) {
+    return (
+      <section className={classes.MealsError}>
+        <p>{httpError}</p>
+      </section>
+    );
+  }
+  const mealsList = mealsState.map((meal) => (
     <MealItem
       id={meal.id} // this is new!
       key={meal.id}
