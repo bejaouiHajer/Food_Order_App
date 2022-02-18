@@ -1,100 +1,135 @@
-import { useRef, useState } from 'react';
+import { useState } from "react";
+import useInput from "../../hooks/use-input";
 
-import classes from './Checkout.module.css';
+import classes from "./Checkout.module.css";
 
-const isEmpty = (value) => value.trim() === '';
+const isNotEmpty = (value) => value.trim() !== "";
 const isFiveChars = (value) => value.trim().length === 5;
 
 const Checkout = (props) => {
-  const [formInputsValidity, setFormInputsValidity] = useState({
-    name: true,
-    street: true,
-    city: true,
-    postalCode: true,
-  });
+  const {
+    value: nameValue,
+    isValid: nameIsValid,
+    hasError: nameHasError,
+    valueChangeHandler: nameChangeHandler,
+    inputBlurHandler: nameBlurHandler,
+    reset: resetName,
+  } = useInput(isNotEmpty);
+  const {
+    value: streetValue,
+    isValid: streetIsValid,
+    hasError: streetHasError,
+    valueChangeHandler: streetChangeHandler,
+    inputBlurHandler: streetBlurHandler,
+    reset: resetStreet,
+  } = useInput(isNotEmpty);
+  const {
+    value: postalValue,
+    isValid: postalIsValid,
+    hasError: postalHasError,
+    valueChangeHandler: postalChangeHandler,
+    inputBlurHandler: postalBlurHandler,
+    reset: resetPostal,
+  } = useInput(isFiveChars);
+  const {
+    value: cityValue,
+    isValid: cityIsValid,
+    hasError: cityHasError,
+    valueChangeHandler: cityChangeHandler,
+    inputBlurHandler: cityBlurHandler,
+    reset: resetCity,
+  } = useInput(isNotEmpty);
 
-  const nameInputRef = useRef();
-  const streetInputRef = useRef();
-  const postalCodeInputRef = useRef();
-  const cityInputRef = useRef();
+let formIsValid=false;
+
+if(nameIsValid && streetIsValid && postalIsValid && cityIsValid){
+  formIsValid=true;
+}
 
   const confirmHandler = (event) => {
     event.preventDefault();
-
-    const enteredName = nameInputRef.current.value;
-    const enteredStreet = streetInputRef.current.value;
-    const enteredPostalCode = postalCodeInputRef.current.value;
-    const enteredCity = cityInputRef.current.value;
-
-    const enteredNameIsValid = !isEmpty(enteredName);
-    const enteredStreetIsValid = !isEmpty(enteredStreet);
-    const enteredCityIsValid = !isEmpty(enteredCity);
-    const enteredPostalCodeIsValid = isFiveChars(enteredPostalCode);
-
-    setFormInputsValidity({
-      name: enteredNameIsValid,
-      street: enteredStreetIsValid,
-      city: enteredCityIsValid,
-      postalCode: enteredPostalCodeIsValid,
-    });
-
-    const formIsValid =
-      enteredNameIsValid &&
-      enteredStreetIsValid &&
-      enteredCityIsValid &&
-      enteredPostalCodeIsValid;
 
     if (!formIsValid) {
       return;
     }
 
     props.onConfirm({
-      name: enteredName,
-      street: enteredStreet,
-      city: enteredCity,
-      postalCode: enteredPostalCode,
+      name: nameValue,
+      street: streetValue,
+      city: cityValue,
+      postalCode: postalValue,
     });
+
+    resetName();
+    resetStreet();
+    resetPostal();
+    resetCity();
   };
 
   const nameControlClasses = `${classes.control} ${
-    formInputsValidity.name ? '' : classes.invalid
+    nameHasError ? classes.invalid: ""
   }`;
   const streetControlClasses = `${classes.control} ${
-    formInputsValidity.street ? '' : classes.invalid
+    streetHasError ? classes.invalid: ""
   }`;
   const postalCodeControlClasses = `${classes.control} ${
-    formInputsValidity.postalCode ? '' : classes.invalid
+    postalHasError ? classes.invalid: ""
   }`;
   const cityControlClasses = `${classes.control} ${
-    formInputsValidity.city ? '' : classes.invalid
+    cityHasError ? classes.invalid: ""
   }`;
 
   return (
     <form className={classes.form} onSubmit={confirmHandler}>
       <div className={nameControlClasses}>
-        <label htmlFor='name'>Your Name</label>
-        <input type='text' id='name' ref={nameInputRef} />
-        {!formInputsValidity.name && <p>Please enter a valid name!</p>}
+        <label htmlFor="name">Your Name</label>
+        <input
+          type="text"
+          id="name"
+          value={nameValue}
+          onChange={nameChangeHandler}
+          onBlur={nameBlurHandler}
+        />
+        {nameHasError && <p>Please enter a valid name!</p>}
       </div>
       <div className={streetControlClasses}>
-        <label htmlFor='street'>Street</label>
-        <input type='text' id='street' ref={streetInputRef} />
-        {!formInputsValidity.street && <p>Please enter a valid street!</p>}
+        <label htmlFor="street">Street</label>
+        <input
+          type="text"
+          id="street"
+          value={streetValue}
+          onChange={streetChangeHandler}
+          onBlur={streetBlurHandler}
+        />
+        {streetHasError && <p>Please enter a valid street!</p>}
       </div>
+
       <div className={postalCodeControlClasses}>
-        <label htmlFor='postal'>Postal Code</label>
-        <input type='text' id='postal' ref={postalCodeInputRef} />
-        {!formInputsValidity.postalCode && (
+        <label htmlFor="postal">Postal Code</label>
+        <input
+          type="text"
+          id="postal"
+          value={postalValue}
+          onChange={postalChangeHandler}
+          onBlur={postalBlurHandler}
+        />
+        {postalHasError && (
           <p>Please enter a valid postal code (5 characters long)!</p>
         )}
       </div>
       <div className={cityControlClasses}>
-        <label htmlFor='city'>City</label>
-        <input type='text' id='city' ref={cityInputRef} />
-        {!formInputsValidity.city && <p>Please enter a valid city!</p>}
+        <label htmlFor="city">City</label>
+        <input
+          type="text"
+          id="city"
+          value={cityValue}
+          onChange={cityChangeHandler}
+          onBlur={cityBlurHandler}
+        />
+        {cityHasError && <p>Please enter a valid city!</p>}
       </div>
       <div className={classes.actions}>
-        <button type='button' onClick={props.onCancel}>
+        <button type="button" onClick={props.onCancel}>
           Cancel
         </button>
         <button className={classes.submit}>Confirm</button>
